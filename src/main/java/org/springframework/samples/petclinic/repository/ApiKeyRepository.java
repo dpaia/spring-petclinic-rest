@@ -30,15 +30,6 @@ import org.springframework.samples.petclinic.model.ApiKey;
 public interface ApiKeyRepository {
 
     /**
-     * Retrieve an {@link ApiKey} from the data store by key hash.
-     *
-     * @param keyHash the hashed key to search for
-     * @return the {@link ApiKey} if found
-     * @throws DataAccessException if data access fails
-     */
-    Optional<ApiKey> findByKeyHash(String keyHash) throws DataAccessException;
-
-    /**
      * Retrieve an {@link ApiKey} from the data store by id, only if it is active.
      *
      * @param id the id to search for
