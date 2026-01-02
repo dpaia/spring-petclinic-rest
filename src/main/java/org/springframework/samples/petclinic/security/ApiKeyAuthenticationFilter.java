@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -39,6 +40,7 @@ import jakarta.servlet.http.HttpServletResponse;
  * @author Spring PetClinic Team
  */
 @Component
+@Profile("spring-data-jpa")
 @ConditionalOnProperty(name = "petclinic.apikey.enabled", havingValue = "true", matchIfMissing = true)
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 

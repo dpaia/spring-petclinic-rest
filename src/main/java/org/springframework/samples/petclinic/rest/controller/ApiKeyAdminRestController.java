@@ -27,6 +27,7 @@ import org.springframework.samples.petclinic.service.ApiKeyService;
 import org.springframework.samples.petclinic.service.ApiKeyCreationResult;
 import org.springframework.samples.petclinic.service.ApiKeyRotationResult;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,7 @@ import jakarta.validation.Valid;
  * @author Spring PetClinic Team
  */
 @RestController
+@Profile("spring-data-jpa")
 @CrossOrigin(exposedHeaders = "errors, content-type")
 @RequestMapping("/api/admin/apikeys")
 public class ApiKeyAdminRestController {

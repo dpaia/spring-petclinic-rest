@@ -23,6 +23,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,6 +45,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * @author Spring PetClinic Team
  */
 @Component
+@Profile("spring-data-jpa")
 @ConditionalOnProperty(name = "petclinic.apikey.enabled", havingValue = "true", matchIfMissing = true)
 public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 

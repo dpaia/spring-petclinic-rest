@@ -24,6 +24,7 @@ import org.springframework.samples.petclinic.model.ApiKey;
 import org.springframework.samples.petclinic.model.ApiKeyAuditLog;
 import org.springframework.samples.petclinic.repository.ApiKeyAuditLogRepository;
 import org.springframework.samples.petclinic.repository.ApiKeyRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * @author Spring PetClinic Team
  */
 @Service
+@Profile("spring-data-jpa")
 public class ApiKeyAuditServiceImpl implements ApiKeyAuditService {
 
     private final ApiKeyAuditLogRepository auditLogRepository;

@@ -27,6 +27,7 @@ import org.springframework.samples.petclinic.model.ApiKey;
 import org.springframework.samples.petclinic.repository.ApiKeyRepository;
 import org.springframework.samples.petclinic.service.ApiKeyCreationResult;
 import org.springframework.samples.petclinic.service.ApiKeyRotationResult;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Spring PetClinic Team
  */
 @Service
+@Profile("spring-data-jpa")
 public class ApiKeyServiceImpl implements ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepository;
