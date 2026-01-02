@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -33,6 +34,7 @@ public class BasicAuthenticationConfig {
     private ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
 
     @Autowired(required = false)
+    @Lazy
     private ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
 
     @Bean

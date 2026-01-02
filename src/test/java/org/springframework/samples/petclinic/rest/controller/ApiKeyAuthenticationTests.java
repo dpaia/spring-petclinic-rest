@@ -54,8 +54,8 @@ class ApiKeyAuthenticationTests {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Create a valid API key for testing
-        var result = apiKeyService.createApiKey("Test API Key", "testuser", null);
+        // Create a valid API key for testing (using "admin" user from test data)
+        var result = apiKeyService.createApiKey("Test API Key", "admin", null);
         validApiKey = result.getFullKey();
         apiKeyId = result.getApiKey().getId();
     }
@@ -102,7 +102,7 @@ class ApiKeyAuthenticationTests {
     void testFailedAuthenticationWithExpiredKey() throws Exception {
         // Create an expired API key
         LocalDateTime pastDate = LocalDateTime.now().minusDays(1);
-        var expiredResult = apiKeyService.createApiKey("Expired Key", "testuser", pastDate);
+        var expiredResult = apiKeyService.createApiKey("Expired Key", "admin", pastDate);
         String expiredKey = expiredResult.getFullKey();
 
         // Test that expired key returns 401

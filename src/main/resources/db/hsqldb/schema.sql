@@ -92,10 +92,9 @@ CREATE TABLE api_keys (
   expires_at TIMESTAMP,
   last_used_at TIMESTAMP,
   revoked_at TIMESTAMP,
-  is_active BOOLEAN DEFAULT TRUE NOT NULL,
-  FOREIGN KEY (created_by) REFERENCES users(username) ON DELETE CASCADE
+  is_active BOOLEAN DEFAULT TRUE NOT NULL
 );
-
+ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_created_by FOREIGN KEY (created_by) REFERENCES users(username);
 CREATE UNIQUE INDEX idx_api_keys_key_hash ON api_keys(key_hash);
 CREATE INDEX idx_api_keys_key_prefix ON api_keys(key_prefix);
 CREATE INDEX idx_api_keys_is_active_revoked ON api_keys(is_active, revoked_at);
@@ -110,9 +109,9 @@ CREATE TABLE api_key_audit_log (
   user_agent VARCHAR(500),
   success BOOLEAN NOT NULL,
   failure_reason VARCHAR(255),
-  timestamp TIMESTAMP NOT NULL,
-  FOREIGN KEY (api_key_id) REFERENCES api_keys(id) ON DELETE SET NULL
+  timestamp TIMESTAMP NOT NULL
 );
+ALTER TABLE api_key_audit_log ADD CONSTRAINT fk_api_key_audit_log_api_key_id FOREIGN KEY (api_key_id) REFERENCES api_keys(id);
 
 CREATE INDEX idx_api_key_audit_log_api_key_id ON api_key_audit_log(api_key_id);
 CREATE INDEX idx_api_key_audit_log_timestamp ON api_key_audit_log(timestamp);

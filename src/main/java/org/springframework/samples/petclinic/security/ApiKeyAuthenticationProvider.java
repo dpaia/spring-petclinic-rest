@@ -15,12 +15,15 @@
  */
 package org.springframework.samples.petclinic.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -46,14 +49,17 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
 
     private final ApiKeyService apiKeyService;
     private final ApiKeyAuditService auditService;
+    private final JdbcTemplate jdbcTemplate;
 
     @Value("${petclinic.apikey.enabled:true}")
     private boolean enabled;
 
     @Autowired
-    public ApiKeyAuthenticationProvider(ApiKeyService apiKeyService, ApiKeyAuditService auditService) {
+    public ApiKeyAuthenticationProvider(ApiKeyService apiKeyService, ApiKeyAuditService auditService,
+                                        JdbcTemplate jdbcTemplate) {
         this.apiKeyService = apiKeyService;
         this.auditService = auditService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -103,10 +109,8 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
             // Update last used timestamp
             apiKeyService.updateLastUsedAt(apiKeyEntity.getId());
 
-            // Create authorities (default to ROLE_USER for API key authentication)
-            Collection<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_USER")
-            );
+            // Load roles for the user who created the API key
+            Collection<GrantedAuthority> authorities = loadUserAuthorities(apiKeyEntity.getCreatedBy());
 
             // Log successful authentication
             if (request != null) {
@@ -123,6 +127,37 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
                 auditService.logAuthenticationAttempt(request, null, keyPrefix, false, "VALIDATION_ERROR");
             }
             throw new BadCredentialsException("API key validation failed", e);
+        }
+    }
+
+    /**
+     * Load user authorities (roles) from the database.
+     * Uses the same query as BasicAuthenticationConfig for consistency.
+     *
+     * @param username the username to load roles for
+     * @return collection of granted authorities
+     */
+    private Collection<GrantedAuthority> loadUserAuthorities(String username) {
+        try {
+            List<String> roles = jdbcTemplate.queryForList(
+                "SELECT role FROM roles WHERE username = ?",
+                String.class,
+                username
+            );
+
+            if (roles.isEmpty()) {
+                // If no roles found, return empty collection (user has no permissions)
+                return Collections.emptyList();
+            }
+
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            for (String role : roles) {
+                authorities.add(new SimpleGrantedAuthority(role));
+            }
+            return authorities;
+        } catch (Exception e) {
+            // If we can't load roles, return empty collection (fail secure)
+            return Collections.emptyList();
         }
     }
 

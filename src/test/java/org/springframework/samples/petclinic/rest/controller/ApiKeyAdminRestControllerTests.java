@@ -62,7 +62,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testCreateApiKeySuccess() throws Exception {
         // Execute
         CreateApiKeyRequestDto request = new CreateApiKeyRequestDto();
@@ -85,7 +85,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testCreateApiKeyWithExpiration() throws Exception {
         // Execute
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(30);
@@ -104,7 +104,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testCreateApiKeyValidationError() throws Exception {
         // Execute with empty name (should fail validation)
         CreateApiKeyRequestDto request = new CreateApiKeyRequestDto();
@@ -135,7 +135,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testRotateApiKeySuccess() throws Exception {
         // Setup: Create an API key first
         var createResult = apiKeyService.createApiKey("Key to Rotate", "admin", null);
@@ -166,7 +166,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testRotateApiKeyNotFound() throws Exception {
         // Execute with non-existent ID
         RotateApiKeyRequestDto request = new RotateApiKeyRequestDto();
@@ -180,7 +180,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testRotateApiKeyWithoutRevoking() throws Exception {
         // Setup: Create an API key first
         var createResult = apiKeyService.createApiKey("Key to Rotate Without Revoking", "admin", null);
@@ -202,7 +202,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testRevokeApiKeySuccess() throws Exception {
         // Setup: Create an API key first
         var createResult = apiKeyService.createApiKey("Key to Revoke", "admin", null);
@@ -225,7 +225,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testRevokeApiKeyNotFound() throws Exception {
         // Execute with non-existent ID
         this.mockMvc.perform(post("/api/admin/apikeys/99999/revoke")
@@ -247,7 +247,7 @@ class ApiKeyAdminRestControllerTests {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "admin", roles = "ADMIN")
     void testFullKeyOnlyReturnedOnCreationAndRotation() throws Exception {
         // Create a key - full key should be returned
         CreateApiKeyRequestDto createRequest = new CreateApiKeyRequestDto();
