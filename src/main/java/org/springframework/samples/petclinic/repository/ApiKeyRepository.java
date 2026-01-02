@@ -70,5 +70,14 @@ public interface ApiKeyRepository {
      * @throws DataAccessException if data access fails
      */
     void delete(ApiKey apiKey) throws DataAccessException;
+
+    /**
+     * Retrieve an {@link ApiKey} from the data store by id.
+     *
+     * @param id the id to search for
+     * @return the {@link ApiKey} if found
+     * @throws DataAccessException if data access fails
+     */
+    Optional<ApiKey> findById(Integer id) throws DataAccessException;
 }
 
