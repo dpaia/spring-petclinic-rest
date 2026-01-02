@@ -58,10 +58,10 @@ public interface ApiKeyService {
      * @param name the name for the API key
      * @param createdBy the username of the user creating the key
      * @param expiresAt optional expiration timestamp
-     * @return the full API key string (only time it's returned)
+     * @return ApiKeyCreationResult containing the full API key string (only time it's returned) and the ApiKey entity
      * @throws DataAccessException if data access fails
      */
-    String createApiKey(String name, String createdBy, LocalDateTime expiresAt) throws DataAccessException;
+    ApiKeyCreationResult createApiKey(String name, String createdBy, LocalDateTime expiresAt) throws DataAccessException;
 
     /**
      * Rotate an API key (generate a new key, optionally revoke the old one).
@@ -69,10 +69,10 @@ public interface ApiKeyService {
      * @param id the ID of the key to rotate
      * @param createdBy the username of the user rotating the key
      * @param revokeOldKey whether to revoke the old key
-     * @return the new full API key string (only time it's returned)
+     * @return ApiKeyRotationResult containing the new full API key string (only time it's returned) and the new ApiKey entity
      * @throws DataAccessException if data access fails
      */
-    String rotateApiKey(Integer id, String createdBy, boolean revokeOldKey) throws DataAccessException;
+    ApiKeyRotationResult rotateApiKey(Integer id, String createdBy, boolean revokeOldKey) throws DataAccessException;
 
     /**
      * Revoke an API key.

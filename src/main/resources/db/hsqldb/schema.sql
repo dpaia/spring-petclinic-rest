@@ -1,3 +1,5 @@
+DROP TABLE api_key_audit_log IF EXISTS;
+DROP TABLE api_keys IF EXISTS;
 DROP TABLE vet_specialties IF EXISTS;
 DROP TABLE vets IF EXISTS;
 DROP TABLE specialties IF EXISTS;
@@ -79,4 +81,41 @@ CREATE TABLE roles (
 );
 ALTER TABLE roles ADD CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES users (username);
 CREATE INDEX fk_username_idx ON roles (username);
+
+CREATE TABLE api_keys (
+  id INTEGER IDENTITY PRIMARY KEY,
+  key_hash VARCHAR(255) NOT NULL,
+  key_prefix VARCHAR(20) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  created_by VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  expires_at TIMESTAMP,
+  last_used_at TIMESTAMP,
+  revoked_at TIMESTAMP,
+  is_active BOOLEAN DEFAULT TRUE NOT NULL,
+  FOREIGN KEY (created_by) REFERENCES users(username) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX idx_api_keys_key_hash ON api_keys(key_hash);
+CREATE INDEX idx_api_keys_key_prefix ON api_keys(key_prefix);
+CREATE INDEX idx_api_keys_is_active_revoked ON api_keys(is_active, revoked_at);
+
+CREATE TABLE api_key_audit_log (
+  id INTEGER IDENTITY PRIMARY KEY,
+  api_key_id INTEGER,
+  key_prefix VARCHAR(20) NOT NULL,
+  request_method VARCHAR(10) NOT NULL,
+  request_path VARCHAR(500) NOT NULL,
+  request_ip VARCHAR(45) NOT NULL,
+  user_agent VARCHAR(500),
+  success BOOLEAN NOT NULL,
+  failure_reason VARCHAR(255),
+  timestamp TIMESTAMP NOT NULL,
+  FOREIGN KEY (api_key_id) REFERENCES api_keys(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_api_key_audit_log_api_key_id ON api_key_audit_log(api_key_id);
+CREATE INDEX idx_api_key_audit_log_timestamp ON api_key_audit_log(timestamp);
+CREATE INDEX idx_api_key_audit_log_key_prefix ON api_key_audit_log(key_prefix);
+CREATE INDEX idx_api_key_audit_log_success_timestamp ON api_key_audit_log(success, timestamp);
 

@@ -25,6 +25,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.ObjectRetrievalFailureException;
 import org.springframework.samples.petclinic.model.ApiKey;
 import org.springframework.samples.petclinic.repository.ApiKeyRepository;
+import org.springframework.samples.petclinic.service.ApiKeyCreationResult;
+import org.springframework.samples.petclinic.service.ApiKeyRotationResult;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -103,7 +105,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     @Transactional
-    public String createApiKey(String name, String createdBy, LocalDateTime expiresAt) throws DataAccessException {
+    public ApiKeyCreationResult createApiKey(String name, String createdBy, LocalDateTime expiresAt) throws DataAccessException {
         // Generate random 64-char hex string
         String apiKey = generateApiKey();
 
@@ -126,13 +128,13 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         // Save to database
         apiKeyRepository.save(apiKeyEntity);
 
-        // Return full key (only time visible)
-        return apiKey;
+        // Return result with full key (only time visible) and entity
+        return new ApiKeyCreationResult(apiKey, apiKeyEntity);
     }
 
     @Override
     @Transactional
-    public String rotateApiKey(Integer id, String createdBy, boolean revokeOldKey) throws DataAccessException {
+    public ApiKeyRotationResult rotateApiKey(Integer id, String createdBy, boolean revokeOldKey) throws DataAccessException {
         // Find existing key by ID
         Optional<ApiKey> existingKeyOpt = apiKeyRepository.findById(id);
         if (existingKeyOpt.isEmpty()) {
@@ -166,8 +168,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         // Save new key
         apiKeyRepository.save(newApiKeyEntity);
 
-        // Return new full key (only time visible)
-        return newApiKey;
+        // Return result with new full key (only time visible) and entity
+        return new ApiKeyRotationResult(newApiKey, newApiKeyEntity);
     }
 
     @Override
