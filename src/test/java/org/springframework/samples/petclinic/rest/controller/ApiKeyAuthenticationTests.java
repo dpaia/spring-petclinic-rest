@@ -18,42 +18,49 @@ package org.springframework.samples.petclinic.rest.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.samples.petclinic.model.ApiKey;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.service.ApiKeyService;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration tests for API key authentication.
+ * Integration tests for API key authentication using real HTTP calls.
  * Tests the actual authentication flow through the Spring Security filter chain.
+ * Uses TestRestTemplate to make real HTTP requests to an embedded server.
  *
  * @author Spring PetClinic Team
  */
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"spring-data-jpa", "hsqldb"})
 class ApiKeyAuthenticationTests {
 
+    @LocalServerPort
+    private int port;
+
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
 
     @Autowired
     private ApiKeyService apiKeyService;
 
     private String validApiKey;
     private Integer apiKeyId;
+    private String baseUrl;
 
     @BeforeEach
     void setUp() throws Exception {
+        baseUrl = "http://localhost:" + port + "/petclinic";
         // Create a valid API key for testing (using "admin" user from test data)
         var result = apiKeyService.createApiKey("Test API Key", "admin", null);
         validApiKey = result.getFullKey();
@@ -61,80 +68,136 @@ class ApiKeyAuthenticationTests {
     }
 
     @Test
-    void testSuccessfulAuthenticationWithValidApiKey() throws Exception {
+    void testSuccessfulAuthenticationWithValidApiKey() {
         // Test that a valid API key allows access to protected endpoints
-        this.mockMvc.perform(get("/api/owners")
-                .header("X-API-Key", validApiKey)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", validApiKey);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseUrl + "/api/owners",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    void testFailedAuthenticationWithInvalidApiKey() throws Exception {
+    void testFailedAuthenticationWithInvalidApiKey() {
         // Test that an invalid API key returns 401
-        this.mockMvc.perform(get("/api/owners")
-                .header("X-API-Key", "invalid-key-that-does-not-exist")
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", "invalid-key-that-does-not-exist");
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseUrl + "/api/owners",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void testFailedAuthenticationWithMissingHeader() throws Exception {
+    void testFailedAuthenticationWithMissingHeader() {
         // Test that missing API key header returns 401 (no Basic Auth provided)
-        this.mockMvc.perform(get("/api/owners")
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized());
+        HttpEntity<?> entity = new HttpEntity<>(new HttpHeaders());
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseUrl + "/api/owners",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void testFailedAuthenticationWithRevokedKey() throws Exception {
+    void testFailedAuthenticationWithRevokedKey() {
         // Revoke the API key
         apiKeyService.revokeApiKey(apiKeyId);
 
         // Test that revoked key returns 401
-        this.mockMvc.perform(get("/api/owners")
-                .header("X-API-Key", validApiKey)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", validApiKey);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseUrl + "/api/owners",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void testFailedAuthenticationWithExpiredKey() throws Exception {
+    void testFailedAuthenticationWithExpiredKey() {
         // Create an expired API key
         LocalDateTime pastDate = LocalDateTime.now().minusDays(1);
         var expiredResult = apiKeyService.createApiKey("Expired Key", "admin", pastDate);
         String expiredKey = expiredResult.getFullKey();
 
         // Test that expired key returns 401
-        this.mockMvc.perform(get("/api/owners")
-                .header("X-API-Key", expiredKey)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", expiredKey);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseUrl + "/api/owners",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void testBasicAuthStillWorksWhenApiKeyHeaderAbsent() throws Exception {
+    void testBasicAuthStillWorksWhenApiKeyHeaderAbsent() {
         // Test that Basic Auth works when X-API-Key header is absent
         String credentials = Base64.getEncoder().encodeToString("admin:admin".getBytes());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + credentials);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
 
-        this.mockMvc.perform(get("/api/owners")
-                .header("Authorization", "Basic " + credentials)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseUrl + "/api/owners",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
-    void testApiKeyWorksForAllProtectedEndpoints() throws Exception {
+    void testApiKeyWorksForAllProtectedEndpoints() {
         // Test that API key authentication works for various protected endpoints
-        this.mockMvc.perform(get("/api/pets")
-                .header("X-API-Key", validApiKey)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-API-Key", validApiKey);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
 
-        this.mockMvc.perform(get("/api/vets")
-                .header("X-API-Key", validApiKey)
-                .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        ResponseEntity<String> petsResponse = restTemplate.exchange(
+            baseUrl + "/api/pets",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+        assertThat(petsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        ResponseEntity<String> vetsResponse = restTemplate.exchange(
+            baseUrl + "/api/vets",
+            HttpMethod.GET,
+            entity,
+            String.class
+        );
+        assertThat(vetsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }
 
