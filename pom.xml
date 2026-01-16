@@ -388,6 +388,8 @@
                                 <serializationLibrary>jackson</serializationLibrary>
                                 <!-- switch documentation provider to springdoc -->
                                 <documentationProvider>springdoc</documentationProvider>
+                                <!-- Skip API key DTOs as they are manually created -->
+                                <modelsToSkip>CreateApiKeyRequestDto,RotateApiKeyRequestDto,ApiKeyResponseDto</modelsToSkip>
                             </configOptions>
                         </configuration>
                     </execution>
@@ -414,6 +416,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/CreateApiKeyRequestDto.java</exclude>
+                        <exclude>**/RotateApiKeyRequestDto.java</exclude>
+                        <exclude>**/ApiKeyResponseDto.java</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-compile</id>

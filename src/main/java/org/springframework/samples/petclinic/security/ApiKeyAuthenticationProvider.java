@@ -94,6 +94,13 @@ public class ApiKeyAuthenticationProvider implements AuthenticationProvider {
         String keyPrefix = apiKey.length() >= 8 ? apiKey.substring(0, 8) : "UNKNOWN";
 
         try {
+            // Check for suspicious activity before validation
+            if (request != null && auditService.detectSuspiciousActivity(keyPrefix)) {
+                // Log suspicious activity attempt
+                auditService.logAuthenticationAttempt(request, null, keyPrefix, false, "SUSPICIOUS_ACTIVITY");
+                throw new BadCredentialsException("Invalid API key");
+            }
+
             // Validate API key
             var apiKeyOpt = apiKeyService.validateApiKey(apiKey);
 
