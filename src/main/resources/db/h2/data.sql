@@ -1,11 +1,22 @@
+-- Insert Users and Roles
+INSERT INTO users (username, password, enabled) VALUES
+('admin', '$2a$10$ymaklWBnpBKlgdMgkjWVF.GMGyvH8aDuTK.glFOaKw712LHtRRymS', TRUE),
+('vet1', '$2a$10$ymaklWBnpBKlgdMgkjWVF.GMGyvH8aDuTK.glFOaKw712LHtRRymS', TRUE),
+('owner1', '$2a$10$ymaklWBnpBKlgdMgkjWVF.GMGyvH8aDuTK.glFOaKw712LHtRRymS', TRUE);
+
+INSERT INTO roles (username, role) VALUES 
+('admin', 'ROLE_ADMIN'),
+('vet1', 'ROLE_VET'),
+('owner1', 'ROLE_OWNER');
+
 -- Insert Vets
-INSERT INTO vets (first_name, last_name) VALUES 
-('James', 'Carter'),
-('Helen', 'Leary'),
-('Linda', 'Douglas'),
-('Rafael', 'Ortega'),
-('Henry', 'Stevens'),
-('Sharon', 'Jenkins');
+INSERT INTO vets (first_name, last_name, username) VALUES 
+('James', 'Carter', NULL),
+('Helen', 'Leary', 'vet1'),
+('Linda', 'Douglas', NULL),
+('Rafael', 'Ortega', NULL),
+('Henry', 'Stevens', NULL),
+('Sharon', 'Jenkins', NULL);
 
 -- Insert Specialties
 INSERT INTO specialties (name) VALUES 
@@ -31,17 +42,17 @@ INSERT INTO types (name) VALUES
 ('hamster');
 
 -- Insert Owners
-INSERT INTO owners (first_name, last_name, address, city, telephone) VALUES 
-('George', 'Franklin', '110 W. Liberty St.', 'Madison', '6085551023'),
-('Betty', 'Davis', '638 Cardinal Ave.', 'Sun Prairie', '6085551749'),
-('Eduardo', 'Rodriquez', '2693 Commerce St.', 'McFarland', '6085558763'),
-('Harold', 'Davis', '563 Friendly St.', 'Windsor', '6085553198'),
-('Peter', 'McTavish', '2387 S. Fair Way', 'Madison', '6085552765'),
-('Jean', 'Coleman', '105 N. Lake St.', 'Monona', '6085552654'),
-('Jeff', 'Black', '1450 Oak Blvd.', 'Monona', '6085555387'),
-('Maria', 'Escobito', '345 Maple St.', 'Madison', '6085557683'),
-('David', 'Schroeder', '2749 Blackhawk Trail', 'Madison', '6085559435'),
-('Carlos', 'Estaban', '2335 Independence La.', 'Waunakee', '6085555487');
+INSERT INTO owners (first_name, last_name, address, city, telephone, username) VALUES 
+('George', 'Franklin', '110 W. Liberty St.', 'Madison', '6085551023', 'owner1'),
+('Betty', 'Davis', '638 Cardinal Ave.', 'Sun Prairie', '6085551749', NULL),
+('Eduardo', 'Rodriquez', '2693 Commerce St.', 'McFarland', '6085558763', NULL),
+('Harold', 'Davis', '563 Friendly St.', 'Windsor', '6085553198', NULL),
+('Peter', 'McTavish', '2387 S. Fair Way', 'Madison', '6085552765', NULL),
+('Jean', 'Coleman', '105 N. Lake St.', 'Monona', '6085552654', NULL),
+('Jeff', 'Black', '1450 Oak Blvd.', 'Monona', '6085555387', NULL),
+('Maria', 'Escobito', '345 Maple St.', 'Madison', '6085557683', NULL),
+('David', 'Schroeder', '2749 Blackhawk Trail', 'Madison', '6085559435', NULL),
+('Carlos', 'Estaban', '2335 Independence La.', 'Waunakee', '6085555487', NULL);
 
 -- Insert Pets
 INSERT INTO pets (name, birth_date, type_id, owner_id) VALUES 
@@ -65,13 +76,3 @@ INSERT INTO visits (pet_id, visit_date, description) VALUES
 (8, '2013-01-02', 'rabies shot'),
 (8, '2013-01-03', 'neutered'),
 (7, '2013-01-04', 'spayed');
-
--- Insert Admin User
-INSERT INTO users (username, password, enabled) VALUES
-('admin', '$2a$10$ymaklWBnpBKlgdMgkjWVF.GMGyvH8aDuTK.glFOaKw712LHtRRymS', TRUE);
-
--- Assign Roles to Admin
-INSERT INTO roles (username, role) VALUES 
-('admin', 'ROLE_OWNER_ADMIN'),
-('admin', 'ROLE_VET_ADMIN'),
-('admin', 'ROLE_ADMIN');

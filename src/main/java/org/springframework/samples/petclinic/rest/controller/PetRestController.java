@@ -49,7 +49,7 @@ public class PetRestController implements PetsApi {
         this.petMapper = petMapper;
     }
 
-    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN) or @securityService.isPetOwner(principal.username, #petId)")
     @Override
     public ResponseEntity<PetDto> getPet(Integer petId) {
         PetDto pet = petMapper.toPetDto(this.clinicService.findPetById(petId));
@@ -70,7 +70,7 @@ public class PetRestController implements PetsApi {
     }
 
 
-    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN) or @securityService.isPetOwner(principal.username, #petId)")
     @Override
     public ResponseEntity<PetDto> updatePet(Integer petId, PetDto petDto) {
         Pet currentPet = this.clinicService.findPetById(petId);
@@ -84,7 +84,7 @@ public class PetRestController implements PetsApi {
         return new ResponseEntity<>(petMapper.toPetDto(currentPet), HttpStatus.NO_CONTENT);
     }
 
-    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
+    @PreAuthorize("hasRole(@roles.OWNER_ADMIN) or @securityService.isPetOwner(principal.username, #petId)")
     @Override
     public ResponseEntity<PetDto> deletePet(Integer petId) {
         Pet pet = this.clinicService.findPetById(petId);

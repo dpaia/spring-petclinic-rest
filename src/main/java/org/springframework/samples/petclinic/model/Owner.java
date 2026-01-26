@@ -54,6 +54,9 @@ public class Owner extends Person {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "owner", fetch = FetchType.EAGER)
     private Set<Pet> pets;
 
+    @Column(name = "username")
+    private String username;
+
     public String getAddress() {
         return this.address;
     }
@@ -97,6 +100,14 @@ public class Owner extends Person {
 
     public void setPets(List<Pet> pets) {
         this.pets = new HashSet<>(pets);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public void addPet(Pet pet) {
