@@ -1,4 +1,4 @@
-DROP TABLE roles IF EXISTS;
+-- Test schema with username columns for security tests
 DROP TABLE vet_specialties IF EXISTS;
 DROP TABLE vets IF EXISTS;
 DROP TABLE specialties IF EXISTS;
@@ -6,31 +6,30 @@ DROP TABLE visits IF EXISTS;
 DROP TABLE pets IF EXISTS;
 DROP TABLE types IF EXISTS;
 DROP TABLE owners IF EXISTS;
+DROP TABLE roles IF EXISTS;
 DROP TABLE users IF EXISTS;
 
-
-CREATE  TABLE users (
-  username    VARCHAR(20) NOT NULL ,
-  password    VARCHAR(255) NOT NULL ,
-  enabled     BOOLEAN DEFAULT TRUE NOT NULL ,
-  PRIMARY KEY (username)
+CREATE TABLE users (
+  username    VARCHAR(20) NOT NULL PRIMARY KEY,
+  password    VARCHAR(60) NOT NULL,
+  enabled     BOOLEAN DEFAULT TRUE NOT NULL
 );
 
 CREATE TABLE roles (
   id              INTEGER IDENTITY PRIMARY KEY,
   username        VARCHAR(20) NOT NULL,
-  role            VARCHAR(20) NOT NULL
+  role            VARCHAR(20) NOT NULL,
+  FOREIGN KEY (username) REFERENCES users (username)
 );
-ALTER TABLE roles ADD CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES users (username) ON DELETE CASCADE;
 CREATE INDEX fk_username_idx ON roles (username);
 
 CREATE TABLE vets (
   id         INTEGER IDENTITY PRIMARY KEY,
   first_name VARCHAR(30),
   last_name  VARCHAR(30),
-  username   VARCHAR(20)
+  username   VARCHAR(20),
+  FOREIGN KEY (username) REFERENCES users (username)
 );
-ALTER TABLE vets ADD CONSTRAINT fk_vets_users FOREIGN KEY (username) REFERENCES users (username) ON DELETE SET NULL;
 CREATE INDEX vets_last_name ON vets (last_name);
 
 CREATE TABLE specialties (
@@ -59,9 +58,9 @@ CREATE TABLE owners (
   address    VARCHAR(255),
   city       VARCHAR(80),
   telephone  VARCHAR(20),
-  username   VARCHAR(20)
+  username   VARCHAR(20),
+  FOREIGN KEY (username) REFERENCES users (username)
 );
-ALTER TABLE owners ADD CONSTRAINT fk_owners_users FOREIGN KEY (username) REFERENCES users (username) ON DELETE SET NULL;
 CREATE INDEX owners_last_name ON owners (last_name);
 
 CREATE TABLE pets (

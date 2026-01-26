@@ -40,6 +40,9 @@ public class Vet extends Person {
         inverseJoinColumns = @JoinColumn(name = "specialty_id"))
     private Set<Specialty> specialties;
 
+    @Column(name = "username")
+    private String username;
+
     @JsonIgnore
     protected Set<Specialty> getSpecialtiesInternal() {
         if (this.specialties == null) {
@@ -61,6 +64,14 @@ public class Vet extends Person {
 
     public void setSpecialties(List<Specialty> specialties) {
         this.specialties = new HashSet<>(specialties);
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @JsonIgnore
