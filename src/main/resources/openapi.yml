@@ -25,6 +25,10 @@ tags:
     description: Endpoints related to pet types.
   - name: specialty
     description: Endpoints related to vet specialties.
+  - name: auth
+    description: Endpoints related to OAuth2 authentication.
+  - name: session
+    description: Endpoints related to session management.
 paths:
   /oops:
     get:
@@ -1719,6 +1723,481 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  /auth/login:
+    get:
+      tags:
+        - auth
+      operationId: initiateLogin
+      summary: Initiate OAuth2 login
+      description: Returns login URL or current authentication status if already authenticated.
+      responses:
+        200:
+          description: Login information returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    description: Whether the user is already authenticated
+                    example: false
+                  message:
+                    type: string
+                    description: Status message
+                    example: "Redirect to OAuth2 provider"
+                  loginUrl:
+                    type: string
+                    description: OAuth2 login URL (when not authenticated)
+                    example: "/oauth2/authorization/google"
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+                required:
+                  - authenticated
+                  - message
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /auth/status:
+    get:
+      tags:
+        - auth
+      operationId: getAuthenticationStatus
+      summary: Get authentication status
+      description: Returns current authentication status and user information.
+      responses:
+        200:
+          description: Authentication status returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    description: Whether the user is authenticated
+                    example: true
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+                  sessionInfo:
+                    $ref: '#/components/schemas/SessionInfo'
+                  message:
+                    type: string
+                    description: Status message (when not authenticated)
+                    example: "User not authenticated"
+                required:
+                  - authenticated
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /auth/success:
+    get:
+      tags:
+        - auth
+      operationId: loginSuccess
+      summary: OAuth2 login success callback
+      description: Handles successful OAuth2 authentication and returns user information.
+      responses:
+        200:
+          description: Authentication successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether authentication was successful
+                    example: true
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Authentication successful"
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+                  redirectUrl:
+                    type: string
+                    description: URL to redirect to after successful login
+                    example: "/api/session/info"
+                required:
+                  - success
+                  - message
+        401:
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Authentication failed"
+                required:
+                  - success
+                  - message
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /auth/error:
+    get:
+      tags:
+        - auth
+      operationId: loginError
+      summary: OAuth2 login error callback
+      description: Handles OAuth2 authentication errors.
+      parameters:
+        - name: error
+          in: query
+          description: Error description
+          required: false
+          schema:
+            type: string
+            example: "access_denied"
+      responses:
+        401:
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Authentication failed"
+                  error:
+                    type: string
+                    description: Error details (if provided)
+                    example: "access_denied"
+                required:
+                  - success
+                  - message
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /session/info:
+    get:
+      tags:
+        - session
+      operationId: getSessionInfo
+      summary: Get session information
+      description: Returns current session information for authenticated users.
+      responses:
+        200:
+          description: Session information returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionInfo:
+                    $ref: '#/components/schemas/SessionInfo'
+                required:
+                  - sessionInfo
+        401:
+          description: User not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No active session found"
+                required:
+                  - error
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /session/user:
+    get:
+      tags:
+        - session
+      operationId: getAuthenticatedUser
+      summary: Get authenticated user information
+      description: Returns information about the currently authenticated user.
+      responses:
+        200:
+          description: User information returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserInfo'
+                required:
+                  - user
+        401:
+          description: User not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not authenticated"
+                required:
+                  - error
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /session/attributes:
+    get:
+      tags:
+        - session
+      operationId: getAllSessionAttributes
+      summary: Get all session attributes
+      description: Returns all session attributes for the authenticated user.
+      responses:
+        200:
+          description: Session attributes returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                description: Map of session attribute keys to values
+        401:
+          description: User not authenticated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not authenticated"
+                required:
+                  - error
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /session/attributes/{key}:
+    get:
+      tags:
+        - session
+      operationId: getSessionAttribute
+      summary: Get a specific session attribute
+      description: Returns the value of a specific session attribute by key.
+      parameters:
+        - name: key
+          in: path
+          description: The session attribute key
+          required: true
+          schema:
+            type: string
+            example: "user_preference"
+      responses:
+        200:
+          description: Session attribute returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    description: The attribute key
+                    example: "user_preference"
+                  value:
+                    description: The attribute value (can be any type)
+                    example: "dark_mode"
+                required:
+                  - key
+                  - value
+        401:
+          description: No active session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No active session"
+                required:
+                  - error
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags:
+        - session
+      operationId: setSessionAttribute
+      summary: Set a session attribute
+      description: Sets the value of a session attribute. System attributes cannot be modified.
+      parameters:
+        - name: key
+          in: path
+          description: The session attribute key
+          required: true
+          schema:
+            type: string
+            example: "user_preference"
+      requestBody:
+        description: The attribute value to set
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  description: The value to set (can be any type)
+                  example: "dark_mode"
+              required:
+                - value
+        required: true
+      responses:
+        200:
+          description: Session attribute set successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Session attribute set successfully"
+                  key:
+                    type: string
+                    example: "user_preference"
+                  value:
+                    description: The value that was set
+                    example: "dark_mode"
+                required:
+                  - success
+                  - message
+                  - key
+                  - value
+        401:
+          description: No active session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No active session"
+                required:
+                  - error
+        403:
+          description: Cannot modify system attribute.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cannot modify system attribute: authenticated_user"
+                required:
+                  - error
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags:
+        - session
+      operationId: removeSessionAttribute
+      summary: Remove a session attribute
+      description: Removes a session attribute by key. System attributes cannot be removed.
+      parameters:
+        - name: key
+          in: path
+          description: The session attribute key
+          required: true
+          schema:
+            type: string
+            example: "user_preference"
+      responses:
+        200:
+          description: Session attribute removed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Session attribute removed successfully"
+                  key:
+                    type: string
+                    example: "user_preference"
+                required:
+                  - success
+                  - message
+                  - key
+        401:
+          description: No active session.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No active session"
+                required:
+                  - error
+        403:
+          description: Cannot remove system attribute.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cannot remove system attribute: authenticated_user"
+                required:
+                  - error
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
   /users:
     post:
       tags:
@@ -2165,3 +2644,94 @@ components:
           example: admin
       required:
         - name
+    UserInfo:
+      title: User Information
+      description: User information returned by authentication and session endpoints.
+      type: object
+      properties:
+        username:
+          title: Username
+          description: The username
+          type: string
+          example: "john.doe"
+        email:
+          title: Email
+          description: The user's email address
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        firstName:
+          title: First Name
+          description: The user's first name
+          type: string
+          example: "John"
+        lastName:
+          title: Last Name
+          description: The user's last name
+          type: string
+          example: "Doe"
+        pictureUrl:
+          title: Picture URL
+          description: URL to the user's profile picture
+          type: string
+          format: uri
+          example: "https://example.com/avatar.jpg"
+        enabled:
+          title: Enabled
+          description: Whether the user account is enabled
+          type: boolean
+          example: true
+        oauthProvider:
+          title: OAuth Provider
+          description: The OAuth provider used for authentication
+          type: string
+          example: "google"
+        roles:
+          title: Roles
+          description: List of user roles
+          type: array
+          items:
+            type: string
+          example: ["OWNER_ADMIN", "VET_ADMIN"]
+      required:
+        - username
+        - enabled
+    SessionInfo:
+      title: Session Information
+      description: Information about the current session.
+      type: object
+      properties:
+        sessionId:
+          title: Session ID
+          description: The session identifier
+          type: string
+          example: "ABC123DEF456"
+        createdTime:
+          title: Created Time
+          description: When the session was created
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        lastActivityTime:
+          title: Last Activity Time
+          description: When the session was last active
+          type: string
+          format: date-time
+          example: "2024-01-15T11:45:00Z"
+        maxInactiveInterval:
+          title: Max Inactive Interval
+          description: Maximum inactive interval in seconds
+          type: integer
+          format: int32
+          example: 1800
+        isNew:
+          title: Is New
+          description: Whether this is a new session
+          type: boolean
+          example: false
+      required:
+        - sessionId
+        - createdTime
+        - lastActivityTime
+        - maxInactiveInterval
+        - isNew

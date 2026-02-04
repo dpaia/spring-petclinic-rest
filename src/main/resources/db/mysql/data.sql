@@ -54,7 +54,11 @@ INSERT IGNORE INTO visits VALUES (4, 7, '2008-09-04', 'spayed');
 
 INSERT IGNORE INTO users (username, password, enabled) VALUES
 ('admin', '$2a$10$ymaklWBnpBKlgdMgkjWVF.GMGyvH8aDuTK.glFOaKw712LHtRRymS', TRUE);
+INSERT IGNORE INTO users (username, password, enabled) VALUES
+('bhagya', '$2a$10$ymaklWBnpBKlgdMgkjWVF.GMGyvH8aDuTK.glFOaKw712LHtRRymS', TRUE);
 
 INSERT IGNORE INTO roles (username, role) VALUES ('admin', 'ROLE_OWNER_ADMIN');
 INSERT IGNORE INTO roles (username, role) VALUES ('admin', 'ROLE_VET_ADMIN');
 INSERT IGNORE INTO roles (username, role) VALUES ('admin', 'ROLE_ADMIN');
+INSERT IGNORE INTO roles (username, role) VALUES ('bhagya', 'ROLE_OWNER_ADMIN');
+

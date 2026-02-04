@@ -15,7 +15,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void saveUser(User user) {
+    public User saveUser(User user) {
 
         if(user.getRoles() == null || user.getRoles().isEmpty()) {
             throw new IllegalArgumentException("User must have at least a role set!");
@@ -31,6 +31,21 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        userRepository.save(user);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public User findByOauthIdAndOauthProvider(String oauthId, String oauthProvider) {
+        return userRepository.findByOauthIdAndOauthProvider(oauthId, oauthProvider);
     }
 }

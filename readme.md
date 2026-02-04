@@ -48,6 +48,17 @@ API documentation (OAS 3.1) is accessible at: [http://localhost:9966/petclinic/v
 
 | **Method** | **Endpoint** | **Description** |
 |-----------|------------|----------------|
+| **Authentication** |  |  |
+| **GET** | `/api/auth/login` | Initiate OAuth2 login |
+| **GET** | `/api/auth/status` | Get authentication status |
+| **POST** | `/api/auth/logout` | Logout and invalidate session |
+| **Session Management** |  |  |
+| **GET** | `/api/session/info` | Get full session information |
+| **GET** | `/api/session/user` | Get authenticated user |
+| **GET** | `/api/session/attributes` | Get all session attributes |
+| **GET** | `/api/session/attributes/{key}` | Get specific session attribute |
+| **PUT** | `/api/session/attributes/{key}` | Set/update session attribute |
+| **DELETE** | `/api/session/attributes/{key}` | Remove session attribute |
 | **Owners** |  |  |
 | **GET** | `/api/owners` | Retrieve all pet owners |
 | **GET** | `/api/owners/{ownerId}` | Get a pet owner by ID |
@@ -222,14 +233,65 @@ mvn clean install
 ## Security configuration
 In its default configuration, Petclinic doesn't have authentication and authorization enabled.
 
-### Basic Authentication
+### OAuth2 Social Login (Recommended)
+The application supports Google OAuth2 social login with comprehensive session management. This is the recommended authentication method for modern applications.
+
+#### Enable OAuth2 Authentication
+```properties
+petclinic.security.enable=true
+petclinic.security.oauth2.enable=true
+
+# Google OAuth2 Configuration
+spring.security.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET
+
+# Admin email configuration
+petclinic.security.admin-emails=admin@petclinic.com,admin@example.com
+
+# Session timeout (30 minutes default)
+petclinic.security.session-timeout=1800
+```
+
+#### Google OAuth2 Setup
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create OAuth2 credentials
+3. Add authorized redirect URI: `http://localhost:9966/petclinic/login/oauth2/code/google`
+4. Copy client ID and secret to your configuration
+
+#### OAuth2 Authentication Flow
+1. **Login**: `GET /api/auth/login` - Returns OAuth2 login URL
+2. **Status**: `GET /api/auth/status` - Check authentication status
+3. **Logout**: `POST /api/auth/logout` - Invalidate session
+
+#### Session Management
+The application provides comprehensive session attribute management:
+
+- **Session Info**: `GET /api/session/info` - Get session metadata
+- **User Info**: `GET /api/session/user` - Get authenticated user details
+- **Attributes**: Full CRUD operations on session attributes
+  - `GET /api/session/attributes` - Get all attributes
+  - `GET /api/session/attributes/{key}` - Get specific attribute
+  - `PUT /api/session/attributes/{key}` - Set/update attribute
+  - `DELETE /api/session/attributes/{key}` - Remove attribute
+
+#### Role Assignment
+- **Default Role**: All users receive `ROLE_OWNER_ADMIN`
+- **Admin Roles**: Users with emails in `petclinic.security.admin-emails` receive:
+  - `ROLE_ADMIN`
+  - `ROLE_VET_ADMIN`
+  - `ROLE_OWNER_ADMIN`
+
+For detailed OAuth2 and session management documentation, see [OAUTH2_SESSION_DOCUMENTATION.md](OAUTH2_SESSION_DOCUMENTATION.md).
+
+### Basic Authentication (Legacy)
 In order to use the basic authentication functionality, turn in on from the `application.properties` file
 ```properties
 petclinic.security.enable=true
+petclinic.security.oauth2.enable=false
 ```
 This will secure all APIs and in order to access them, basic authentication is required.
 Apart from authentication, APIs also require authorization. This is done via roles that a user can have.
-The existing roles are listed below with the corresponding permissions 
+The existing roles are listed below with the corresponding permissions
 
 * `OWNER_ADMIN` -> `OwnerController`, `PetController`, `PetTypeController` (`getAllPetTypes` and `getPetType`), `VisitController`
 * `VET_ADMIN`   -> `PetTypeController`, `SpecialityController`, `VetController`

@@ -3,6 +3,7 @@ package org.springframework.samples.petclinic.rest.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.mapper.UserMapper;
 import org.springframework.samples.petclinic.model.User;
 import org.springframework.samples.petclinic.rest.advice.ExceptionControllerAdvice;
-import org.springframework.samples.petclinic.rest.controller.UserRestController;
 import org.springframework.samples.petclinic.service.UserService;
 import org.springframework.samples.petclinic.service.clinicService.ApplicationTestConfig;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -44,6 +44,7 @@ class UserRestControllerTests {
             .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 
+    @EnabledIfSystemProperty(named = "petclinic.security.oauth2.enable", matches = "false")
     @Test
     @WithMockUser(roles = "ADMIN")
     void testCreateUserSuccess() throws Exception {

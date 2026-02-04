@@ -15,6 +15,8 @@
  */
 package org.springframework.samples.petclinic.model;
 
+import java.io.Serializable;
+
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,7 +31,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * @author Juergen Hoeller
  */
 @MappedSuperclass
-public class BaseEntity {
+public class BaseEntity implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Integer id;

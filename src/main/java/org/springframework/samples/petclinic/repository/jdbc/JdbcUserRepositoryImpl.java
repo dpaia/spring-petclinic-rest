@@ -32,17 +32,51 @@ public class JdbcUserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void save(User user) throws DataAccessException {
+    public User save(User user) throws DataAccessException {
 
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
 
         try {
             getByUsername(user.getUsername());
-            this.namedParameterJdbcTemplate.update("UPDATE users SET password=:password, enabled=:enabled WHERE username=:username", parameterSource);
+            this.namedParameterJdbcTemplate.update(
+                "UPDATE users SET password=:password, enabled=:enabled, email=:email, first_name=:firstName, last_name=:lastName, oauth_provider=:oauthProvider, oauth_id=:oauthId, picture_url=:pictureUrl WHERE username=:username",
+                parameterSource);
         } catch (EmptyResultDataAccessException e) {
             this.insertUser.execute(parameterSource);
         } finally {
             updateUserRoles(user);
+        }
+        return user;
+    }
+
+    @Override
+    public User findByUsername(String username) throws DataAccessException {
+        return getByUsername(username);
+    }
+
+    @Override
+    public User findByEmail(String email) throws DataAccessException {
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put("email", email);
+            return this.namedParameterJdbcTemplate.queryForObject("SELECT * FROM users WHERE email=:email",
+                params, BeanPropertyRowMapper.newInstance(User.class));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public User findByOauthIdAndOauthProvider(String oauthId, String oauthProvider) throws DataAccessException {
+        try {
+            Map<String, Object> params = new HashMap<>();
+            params.put("oauthId", oauthId);
+            params.put("oauthProvider", oauthProvider);
+            return this.namedParameterJdbcTemplate.queryForObject(
+                "SELECT * FROM users WHERE oauth_id=:oauthId AND oauth_provider=:oauthProvider",
+                params, BeanPropertyRowMapper.newInstance(User.class));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
         }
     }
 
