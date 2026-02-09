@@ -249,6 +249,130 @@ There is an existing user with the username `admin` and password `admin` that ha
 }
 ```
 
+### API Key Authentication
+Petclinic supports API key authentication for machine-to-machine access. API keys work alongside Basic Authentication - both methods are supported simultaneously.
+
+#### Quick Start
+
+1. **Enable API key authentication** (enabled by default when security is enabled):
+   ```properties
+   petclinic.security.enable=true
+   petclinic.apikey.enabled=true
+   ```
+
+2. **Create an API key** (requires ROLE_ADMIN):
+   ```bash
+   curl -X POST http://localhost:9966/petclinic/api/admin/apikeys \
+     -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "My API Key"}'
+   ```
+   
+   Response includes the full API key (store it securely - it's only returned once):
+   ```json
+   {
+     "id": 1,
+     "key": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+     "keyPrefix": "a1b2c3d4",
+     "name": "My API Key",
+     "createdAt": "2024-01-15T10:30:00Z",
+     "expiresAt": null,
+     "createdBy": "admin"
+   }
+   ```
+
+3. **Use the API key** in requests:
+   ```bash
+   curl -X GET http://localhost:9966/petclinic/api/owners \
+     -H "X-API-Key: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2"
+   ```
+
+#### Features
+
+- **Secure Storage**: API keys are hashed with BCrypt (strength 12) and never stored in plaintext
+- **Key Management**: Create, rotate, and revoke keys via admin REST API
+- **Expiration Support**: Optional expiration dates for time-limited access
+- **Audit Logging**: All authentication attempts (successful and failed) are logged
+- **Suspicious Activity Detection**: Multiple failed attempts from the same key prefix trigger detection
+- **Backward Compatible**: Basic Authentication continues to work when API key header is absent
+
+#### API Key Management Endpoints
+
+All admin endpoints require `ROLE_ADMIN` and are under `/api/admin/apikeys`:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/admin/apikeys` | Create a new API key |
+| POST | `/api/admin/apikeys/{id}/rotate` | Rotate an API key (generate new key) |
+| POST | `/api/admin/apikeys/{id}/revoke` | Revoke an API key |
+
+**Example: Create API key with expiration**
+```bash
+curl -X POST http://localhost:9966/petclinic/api/admin/apikeys \
+  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Temporary Key",
+    "expiresAt": "2025-12-31T23:59:59Z"
+  }'
+```
+
+**Example: Rotate API key**
+```bash
+curl -X POST http://localhost:9966/petclinic/api/admin/apikeys/1/rotate \
+  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Content-Type: application/json" \
+  -d '{"revokeOldKey": true}'
+```
+
+**Example: Revoke API key**
+```bash
+curl -X POST http://localhost:9966/petclinic/api/admin/apikeys/1/revoke \
+  -H "Authorization: Basic YWRtaW46YWRtaW4="
+```
+
+#### Configuration
+
+API key authentication can be configured via `application.properties`:
+
+```properties
+# Enable/disable API key authentication (default: true)
+petclinic.apikey.enabled=true
+
+# API key header name (default: X-API-Key)
+petclinic.apikey.header-name=X-API-Key
+
+# API key length (default: 64)
+petclinic.apikey.key-length=64
+
+# BCrypt strength (default: 12)
+petclinic.apikey.bcrypt-strength=12
+
+# Enable/disable audit logging (default: true)
+petclinic.apikey.audit.enabled=true
+
+# Suspicious activity detection threshold (default: 5 failures)
+petclinic.apikey.suspicious-activity.failure-threshold=5
+
+# Suspicious activity time window in minutes (default: 15)
+petclinic.apikey.suspicious-activity.time-window-minutes=15
+```
+
+#### Security Considerations
+
+- **Full key visibility**: The complete API key is only returned once (on creation or rotation). Store it securely as it cannot be retrieved later.
+- **Key prefix**: Only the first 8 characters (key prefix) are stored for identification purposes.
+- **Revoked keys**: Revoked keys are immediately rejected and cannot be used for authentication.
+- **Expired keys**: Keys with expiration dates are automatically rejected after expiration.
+- **Audit logging**: All authentication attempts are logged with request details (method, path, IP, user agent, success/failure, timestamp).
+- **Suspicious activity**: Multiple failed attempts from the same key prefix within a time window are flagged as suspicious.
+
+#### Documentation
+
+For complete API documentation including API key endpoints, see:
+- **Swagger UI**: [http://localhost:9966/petclinic/swagger-ui.html](http://localhost:9966/petclinic/swagger-ui.html)
+- **OpenAPI Spec**: [http://localhost:9966/petclinic/v3/api-docs](http://localhost:9966/petclinic/v3/api-docs)
+
 ## Working with Petclinic in Eclipse/STS
 
 ### prerequisites
