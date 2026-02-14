@@ -34,6 +34,7 @@ public class JdbcPetRowMapper implements RowMapper<JdbcPet> {
         pet.setId(rs.getInt("pets_id"));
         pet.setName(rs.getString("name"));
         pet.setBirthDate(rs.getObject("birth_date", LocalDate.class));
+        pet.setWeight(rs.getBigDecimal("weight"));
         pet.setTypeId(rs.getInt("type_id"));
         pet.setOwnerId(rs.getInt("owner_id"));
         return pet;
