@@ -39,6 +39,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -94,12 +95,14 @@ class PetRestControllerTests {
         pets.add(pet.id(3)
             .name("Rosy")
             .birthDate(LocalDate.now())
+            .weight(new BigDecimal("15.75"))
             .type(petType));
 
         pet = new PetDto();
         pets.add(pet.id(4)
             .name("Jewel")
             .birthDate(LocalDate.now())
+            .weight(new BigDecimal("12.30"))
             .type(petType));
     }
 
@@ -112,7 +115,8 @@ class PetRestControllerTests {
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.id").value(3))
-            .andExpect(jsonPath("$.name").value("Rosy"));
+            .andExpect(jsonPath("$.name").value("Rosy"))
+            .andExpect(jsonPath("$.weight").value(15.75));
     }
 
     @Test
@@ -137,8 +141,10 @@ class PetRestControllerTests {
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.[0].id").value(3))
             .andExpect(jsonPath("$.[0].name").value("Rosy"))
+            .andExpect(jsonPath("$.[0].weight").value(15.75))
             .andExpect(jsonPath("$.[1].id").value(4))
-            .andExpect(jsonPath("$.[1].name").value("Jewel"));
+            .andExpect(jsonPath("$.[1].name").value("Jewel"))
+            .andExpect(jsonPath("$.[1].weight").value(12.30));
     }
 
     @Test
@@ -157,6 +163,7 @@ class PetRestControllerTests {
         given(this.clinicService.findPetById(3)).willReturn(petMapper.toPet(pets.get(0)));
         PetDto newPet = pets.get(0);
         newPet.setName("Rosy I");
+        newPet.setWeight(new BigDecimal("16.20"));
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
@@ -173,7 +180,8 @@ class PetRestControllerTests {
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/json"))
             .andExpect(jsonPath("$.id").value(3))
-            .andExpect(jsonPath("$.name").value("Rosy I"));
+            .andExpect(jsonPath("$.name").value("Rosy I"))
+            .andExpect(jsonPath("$.weight").value(16.20));
 
     }
 

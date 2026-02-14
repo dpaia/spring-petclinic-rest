@@ -109,7 +109,7 @@ public class JdbcPetRepositoryImpl implements PetRepository {
             pet.setId(newKey.intValue());
         } else {
             this.namedParameterJdbcTemplate.update(
-                "UPDATE pets SET name=:name, birth_date=:birth_date, type_id=:type_id, " +
+                "UPDATE pets SET name=:name, birth_date=:birth_date, weight=:weight, type_id=:type_id, " +
                     "owner_id=:owner_id WHERE id=:id",
                 createPetParameterSource(pet));
         }
@@ -123,6 +123,7 @@ public class JdbcPetRepositoryImpl implements PetRepository {
             .addValue("id", pet.getId())
             .addValue("name", pet.getName())
             .addValue("birth_date", pet.getBirthDate())
+            .addValue("weight", pet.getWeight())
             .addValue("type_id", pet.getType().getId())
             .addValue("owner_id", pet.getOwner().getId());
     }
@@ -133,7 +134,7 @@ public class JdbcPetRepositoryImpl implements PetRepository {
 		Collection<Pet> pets = new ArrayList<Pet>();
 		Collection<JdbcPet> jdbcPets = new ArrayList<JdbcPet>();
 		jdbcPets = this.namedParameterJdbcTemplate
-				.query("SELECT pets.id as pets_id, name, birth_date, type_id, owner_id FROM pets",
+                .query("SELECT pets.id as pets_id, name, birth_date, weight, type_id, owner_id FROM pets",
 				params,
 				new JdbcPetRowMapper());
 		Collection<PetType> petTypes = this.namedParameterJdbcTemplate.query("SELECT id, name FROM types ORDER BY name",
